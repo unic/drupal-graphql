@@ -1,0 +1,20 @@
+name: 'Update Composer packages'
+on: [push]
+
+jobs:
+  update-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Packagist Update
+      # You may pin to the exact commit or the version.
+      # uses: mnavarrocarter/packagist-update@72b6a490902b9e14e114dd748b112bb49087c642
+      - uses: mnavarrocarter/packagist-update@v1.0.0
+        with:
+            # The packagist domain to call.
+          domain: example.com # optional, default is packagist.org
+            # Your packagist username
+          username: Laureatus
+            # Your packagist api token
+          api_token: Test-token
+            # Your package name (vendor/name). If not present, it takes it from composer.json
+          package_name: laureatus/drupal-graphql # optional, default is 
