@@ -286,7 +286,7 @@ abstract class SchemaPluginBase extends PluginBase implements SchemaPluginInterf
       return array_values(DocumentValidator::defaultRules());
     });
 
-    $config->setPersistentQueryLoader([$this->queryProvider, 'getQuery']);
+    $config->setPersistedQueryLoader([$this->queryProvider, 'getQuery']);
     $config->setQueryBatching(TRUE);
     $config->setDebugFlag(!!$this->parameters['development']);
     $config->setSchema($this->getSchema());
