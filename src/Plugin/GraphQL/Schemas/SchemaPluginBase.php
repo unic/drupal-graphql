@@ -288,7 +288,7 @@ abstract class SchemaPluginBase extends PluginBase implements SchemaPluginInterf
 
     $config->setPersistentQueryLoader([$this->queryProvider, 'getQuery']);
     $config->setQueryBatching(TRUE);
-    $config->setDebug(!!$this->parameters['development']);
+    $config->setDebugFlag(!!$this->parameters['development']);
     $config->setSchema($this->getSchema());
 
     // Always log the errors.

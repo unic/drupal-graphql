@@ -194,7 +194,7 @@ class QueryProcessor {
       // only work through POST requests. One cannot have mutations and queries
       // in the same document, hence this check is sufficient.
       $operation = $params->operation;
-      $type = AST::getOperation($document, $operation);
+      $type = AST::concatAST($document, $operation);
       if ($params->isReadOnly() && $type !== 'query') {
         throw new RequestError('GET requests are only supported for query operations.');
       }
@@ -432,7 +432,7 @@ class QueryProcessor {
    * @throws \GraphQL\Server\RequestError
    */
   protected function loadPersistedQuery(ServerConfig $config, OperationParams $params) {
-    if (!$loader = $config->getPersistentQueryLoader()) {
+    if (!$loader = $config->getPersistedQueryLoader()) {
       throw new RequestError('Persisted queries are not supported by this server.');
     }
 
