@@ -154,8 +154,8 @@ class QueryProcessor {
         $result->setErrorsHandler($config->getErrorsHandler());
       }
 
-      if ($config->getErrorFormatter() || $config->getDebug()) {
-        $result->setErrorFormatter(FormattedError::prepareFormatter($config->getErrorFormatter(), $config->getDebug()));
+      if ($config->getErrorFormatter() || $config->getDebugFlag()) {
+        $result->setErrorFormatter(FormattedError::prepareFormatter($config->getErrorFormatter(), $config->getDebugFlag()));
       }
 
       return $result;
@@ -231,7 +231,7 @@ class QueryProcessor {
    */
   protected function executeCacheableOperation(PromiseAdapter $adapter, ServerConfig $config, OperationParams $params, DocumentNode $document, $validate = TRUE) {
     $contextCacheId = 'ccid:' . $this->cacheIdentifier($params, $document);
-    if (!$config->getDebug() && $contextCache = $this->cacheBackend->get($contextCacheId)) {
+    if (!$config->getDebugFlag() && $contextCache = $this->cacheBackend->get($contextCacheId)) {
       $contexts = $contextCache->data ?: [];
       $cid = 'cid:' . $this->cacheIdentifier($params, $document, $contexts);
       if ($cache = $this->cacheBackend->get($cid)) {
