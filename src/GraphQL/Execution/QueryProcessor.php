@@ -200,7 +200,7 @@ class QueryProcessor {
       }
 
       // Only queries can be cached (mutations and subscriptions can't).
-      if ($type === 'query') {
+      if ($type->operation === 'query') {
         return $this->executeCacheableOperation($adapter, $config, $params, $document, !$persisted);
       }
 
