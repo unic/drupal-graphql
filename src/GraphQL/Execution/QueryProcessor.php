@@ -195,7 +195,7 @@ class QueryProcessor {
       // in the same document, hence this check is sufficient.
       $operation = $params->operation;
       $type = AST::getOperationAST($document, $operation);
-      if ($params->isReadOnly() && $type !== 'query') {
+      if ($params->readOnly && $type !== 'query') {
         throw new RequestError('GET requests are only supported for query operations.');
       }
 
