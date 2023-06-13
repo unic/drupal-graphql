@@ -28,6 +28,8 @@ use GraphQL\Validator\Rules\AbstractValidationRule;
 use GraphQL\Validator\ValidationContext;
 use GraphQL\Validator\Rules\QueryComplexity;
 use Symfony\Component\HttpFoundation\RequestStack;
+use GraphQL\Validator\Rules\ValidationRule;
+use GraphQL\Validator\QueryValidationContext;
 
 // TODO: Refactor this and clean it up.
 class QueryProcessor {
@@ -154,8 +156,8 @@ class QueryProcessor {
         $result->setErrorsHandler($config->getErrorsHandler());
       }
 
-      if ($config->getErrorFormatter() || $config->getDebug()) {
-        $result->setErrorFormatter(FormattedError::prepareFormatter($config->getErrorFormatter(), $config->getDebug()));
+      if ($config->getErrorFormatter() || $config->getDebugFlag()) {
+        $result->setErrorFormatter(FormattedError::prepareFormatter($config->getErrorFormatter(), $config->getDebugFlag()));
       }
 
       return $result;
@@ -194,13 +196,13 @@ class QueryProcessor {
       // only work through POST requests. One cannot have mutations and queries
       // in the same document, hence this check is sufficient.
       $operation = $params->operation;
-      $type = AST::getOperation($document, $operation);
-      if ($params->isReadOnly() && $type !== 'query') {
+      $type = AST::getOperationAST($document, $operation);
+      if ($params->readOnly && $type !== 'query') {
         throw new RequestError('GET requests are only supported for query operations.');
       }
 
       // Only queries can be cached (mutations and subscriptions can't).
-      if ($type === 'query') {
+      if ($type->operation === 'query') {
         return $this->executeCacheableOperation($adapter, $config, $params, $document, !$persisted);
       }
 
@@ -230,7 +232,7 @@ class QueryProcessor {
    */
   protected function executeCacheableOperation(PromiseAdapter $adapter, ServerConfig $config, OperationParams $params, DocumentNode $document, $validate = TRUE) {
     $contextCacheId = 'ccid:' . $this->cacheIdentifier($params, $document);
-    if (!$config->getDebug() && $contextCache = $this->cacheBackend->get($contextCacheId)) {
+    if (!$config->getDebugFlag() && $contextCache = $this->cacheBackend->get($contextCacheId)) {
       $contexts = $contextCache->data ?: [];
       $cid = 'cid:' . $this->cacheIdentifier($params, $document, $contexts);
       if ($cache = $this->cacheBackend->get($cid)) {
@@ -350,14 +352,14 @@ class QueryProcessor {
 
     $schema = $config->getSchema();
     $info = new TypeInfo($schema);
-    $validation = new ValidationContext($schema, $document, $info);
-    $visitors = array_values(array_map(function (AbstractValidationRule $rule) use ($validation, $params) {
+    $validation = new QueryValidationContext($schema, $document, $info);
+    $visitors = array_values(array_map(function (ValidationRule $rule) use ($validation, $params) {
       // Set current variable values for QueryComplexity validation rule case
       // @see \GraphQL\GraphQL::promiseToExecute for equivalent
       if ($rule instanceof QueryComplexity && !empty($params->variables)) {
         $rule->setRawVariableValues($params->variables);
       }
-      return $rule($validation);
+      return $rule->getVisitor($validation);
     }, $rules));
 
     // Run the query visitor with the prepared validation rules and the cache
@@ -432,7 +434,7 @@ class QueryProcessor {
    * @throws \GraphQL\Server\RequestError
    */
   protected function loadPersistedQuery(ServerConfig $config, OperationParams $params) {
-    if (!$loader = $config->getPersistentQueryLoader()) {
+    if (!$loader = $config->getPersistedQueryLoader()) {
       throw new RequestError('Persisted queries are not supported by this server.');
     }
 
