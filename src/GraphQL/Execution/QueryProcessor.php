@@ -24,12 +24,12 @@ use GraphQL\Server\ServerConfig;
 use GraphQL\Utils\AST;
 use GraphQL\Utils\TypeInfo;
 use GraphQL\Utils\Utils;
-use GraphQL\Validator\QueryValidationContext;
 use GraphQL\Validator\Rules\AbstractValidationRule;
-use GraphQL\Validator\Rules\ValidationRule;
 use GraphQL\Validator\ValidationContext;
 use GraphQL\Validator\Rules\QueryComplexity;
 use Symfony\Component\HttpFoundation\RequestStack;
+use GraphQL\Validator\Rules\ValidationRule;
+use GraphQL\Validator\QueryValidationContext;
 
 // TODO: Refactor this and clean it up.
 class QueryProcessor {
@@ -359,7 +359,7 @@ class QueryProcessor {
       if ($rule instanceof QueryComplexity && !empty($params->variables)) {
         $rule->setRawVariableValues($params->variables);
       }
-      return $rule($validation);
+      return $rule->getVisitor($validation);
     }, $rules));
 
     // Run the query visitor with the prepared validation rules and the cache
